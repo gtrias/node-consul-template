@@ -1,5 +1,7 @@
 # node-consul-template
 
+Caution! This is Work-in-progress and is not production ready yet.
+
 Consul generated templates.
 
 This is an opinated template renderer written in nodejs. Heavily based on [consul-template](https://github.com/hashicorp/consul-template).
@@ -48,7 +50,7 @@ Configuration anatomy:
 ### haproxy
 
 The included template expects you define your services adding the next tags in key=value format.
-Consul doesn't support key-value attributes yet so this is a workaround to allow define container configuration
+Consul doesn't support key-value attributes yet [(See status)](https://github.com/hashicorp/consul/issues/1107) so this is a workaround to allow define container configuration
 using tags.
 
 If you are using [gliderlabs/registrator](https://github.com/gliderlabs/registrator), then you can define your
