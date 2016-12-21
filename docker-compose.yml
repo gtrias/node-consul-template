@@ -1,0 +1,38 @@
+version: '2'
+
+services:
+    consul:
+        image: gliderlabs/consul-server
+        command: -bootstrap -bind=127.0.0.1 -recursor=8.8.8.8
+        ports:
+        - 8400:8400
+        - 8500:8500
+        - 53:8600/udp
+    registrator:
+        image: gliderlabs/registrator
+        depends_on:
+        - consul
+        network_mode: host
+        volumes:
+        - /var/run/docker.sock:/tmp/docker.sock
+        command: consul://localhost:8500
+
+    consul-template:
+        build: .
+        depends_on:
+        - consul
+        links:
+        - consul
+        volumes:
+        - /etc/haproxy
+        - /etc/consul-template
+        # command: "-config=/etc/consul-template/consul-template.cfg -log-level=debug"
+        # command: "-config=/etc/consul-template/consul-template.cfg"
+
+    # Testing containers
+    whoami1:
+        image: emilevauge/whoami
+        ports:
+        - 80
+        environment:
+        - 'SERVICE_TAGS=VIRTUAL_HOST=whoami.example.com,SSL_VIRTUAL_HOST=whoami.example.com,SSL_EMAIL=info@example.com'
