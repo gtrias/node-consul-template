@@ -30,10 +30,10 @@ Configuration anatomy:
 {
     "templates": [
         {
-            "source": "templates/haproxy.cnf.njk",
-            "path": "dump",
-            "filename": "haproxy.cfg",
-            "command": "/usr/bin/haproxy -D -p /var/run/haproxy.pid  -f /etc/haproxy/haproxy.cfg -sf $(cat /var/run/haproxy.pid) || true"
+            "source": "templates/haproxy.cnf.njk",                                                 // Nunjunks template
+            "path": "dump",                                                                        // Path where the generated template will be rendered
+            "filename": "haproxy.cfg",                                                             // Filename for generated template
+            "command": "/usr/bin/haproxy -D -p /var/run/haproxy.pid  -f /etc/haproxy/haproxy.cfg " // Command to run after configuration generation
         },
         {
             "source": "templates/certificates.sh.njk",
