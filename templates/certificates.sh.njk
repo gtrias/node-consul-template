@@ -1,0 +1,32 @@
+#!/bin/sh
+{% for name, service in data.Services -%}
+    {% set sslVirtualHost -%}
+        {%- for tag in service.Tags -%}
+            {%- set fields = tag |split("=") -%}
+            {%- if fields[0] === 'SSL_VIRTUAL_HOST' -%}
+                {{- fields[1] -}}
+            {%- endif -%}
+        {%- endfor -%}
+    {% endset %}
+    {% set sslEmail -%}
+        {%- for tag in service.Tags -%}
+            {%- set fields = tag |split("=") -%}
+            {%- if fields[0] === 'SSL_EMAIL' -%}
+                {{- fields[1] -}}
+            {%- endif -%}
+        {%- endfor -%}
+    {% endset %}
+    {%if sslVirtualHost.length and sslEmail.length %}
+fqdn={{- sslVirtualHost }}
+email={{- sslEmail }}
+echo -n "$fqdn"
+
+if [ ! -f /etc/letsencrypt/live/$fqdn/fullchain.pem ] && [ ! -f /etc/letsencrypt/live/$fqdn/privkey.pem ]; then
+    echo " creating.."
+    certbot auth --non-interactive --text -a standalone --agree-tos --email $email --standalone-supported-challenges http-01 -d $fqdn && \
+    cat /etc/letsencrypt/live/$fqdn/fullchain.pem /etc/letsencrypt/live/$fqdn/privkey.pem > /certificates/$fqdn.pem
+else
+    echo " exists"
+fi
+{%- endif %}
+{%- endfor %}

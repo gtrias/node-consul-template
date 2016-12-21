@@ -12,6 +12,7 @@
   "author": "Genar <genar@acs.li>",
   "license": "ISC",
   "dependencies": {
+    "config": "^1.24.0",
     "consul": "^0.27.0",
     "mkdirp": "^0.5.1",
     "nunjucks": "^3.0.0"
