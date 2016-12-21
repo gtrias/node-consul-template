@@ -11,7 +11,6 @@ install:
   - npm install
 
 script:
-  - npm test
   - docker run -d --name node-consul-template gtrias/node-consul-template
   - docker ps | grep -q node-consul-template
   - docker-compose up -d
