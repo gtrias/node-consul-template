@@ -1,10 +1,16 @@
-var nunjucks = require('nunjucks');
-var path = require('path');
-var fs = require('fs');
-var mkdirp = require('mkdirp');
-var consul = require('consul')({
+var nunjucks           = require('nunjucks');
+var path               = require('path');
+var fs                 = require('fs');
+var mkdirp             = require('mkdirp');
+var consul             = require('consul')({
     host: '127.0.0.1',
     promisify: true
+});
+
+var env = new nunjucks.Environment(new nunjucks.FileSystemLoader('.'));
+
+env.addFilter('split', function(str, seperator) {
+    return str.split(seperator);
 });
 
 consul.agent.self(function(err, result) {
@@ -18,7 +24,7 @@ function startWatcher(node) {
 
     watch.on('change', function(data, res) {
         console.log(data.Services);
-        var result = nunjucks.render('templates/haproxy.cnf.jinja', { data: data });
+        var result = env.render('templates/haproxy.cnf.jinja', { data: data });
         var templateDir = path.join(__dirname, 'dump', 'haproxy');
         mkdirp.sync(templateDir);
         fs.writeFileSync(path.join(templateDir, 'haproxy.cfg'), result);

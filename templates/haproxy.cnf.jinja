@@ -31,6 +31,16 @@ frontend www
 {% for name, service in data.Services %}
     acl host_{{ service.Service }} hdr_beg(host) -i {{ service.Service }}.{{ "service.consul" }}
     use_backend {{ service.Service }}_backend if host_{{ service.Service }}
+
+    {% for tag in service.Tags %}
+        {% set candyArray = tag |split("=") %}
+        {% if candyArray[0] === 'VIRTUAL_HOST' %}
+            {% set virtualHost = candyArray[1] %}
+            acl host_{{ virtualHost }} hdr_beg(host) -i {{ virtualHost }}
+            use_backend {{ service.Service }}_backend if host_{{ virtualHost }}
+        {% endif %}
+    {% endfor %}
+
 {% endfor %}
 
 ### Consul-configured backend data.Services ###
