@@ -1,0 +1,19 @@
+{
+  "name": "nodejs-consul-template",
+  "version": "1.0.0",
+  "description": "Consume Consul services and KV to write configuration files",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "consul"
+  ],
+  "author": "Genar <genar@acs.li>",
+  "license": "ISC",
+  "dependencies": {
+    "consul": "^0.27.0",
+    "mkdirp": "^0.5.1",
+    "nunjucks": "^3.0.0"
+  }
+}

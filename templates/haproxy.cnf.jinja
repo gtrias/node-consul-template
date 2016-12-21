@@ -1,0 +1,39 @@
+global
+    maxconn 256
+    debug
+    # Recommended SSL ciphers as per https://hynek.me/articles/hardening-your-web-servers-ssl-ciphers/
+    ssl-default-bind-options no-sslv3
+    ssl-default-bind-ciphers ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:ECDH+3DES:DH+3DES:RSA+AESGCM:RSA+AES:RSA+3DES:!aNULL:!MD5:!DSS
+
+    ssl-default-server-options no-sslv3
+    ssl-default-server-ciphers ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:ECDH+3DES:DH+3DES:RSA+AESGCM:RSA+AES:RSA+3DES:!aNULL:!MD5:!DSS
+    tune.ssl.default-dh-param 2048
+
+defaults
+    mode http
+    option forwardfor
+    option http-server-close
+    timeout connect "5000ms"
+    timeout client "50000ms"
+    timeout server "50000ms"
+
+### HTTP(S) frontend ###
+frontend www
+    bind *:80
+    {% if env.HAPROXY_USESSL %}
+    bind *:443 ssl crt /haproxy/ssl.crt
+    {% endif %}
+
+    reqadd X-Forwarded-Proto:\ http if !{ ssl_fc }
+    reqadd X-Forwarded-Proto:\ https if { ssl_fc }
+
+    # Generated automatically by consul-template
+{% for name, service in data.Services %}
+    acl host_{{ service.Service }} hdr_beg(host) -i {{ service.Service }}.{{ "service.consul" }}
+    use_backend {{ service.Service }}_backend if host_{{ service.Service }}
+{% endfor %}
+
+### Consul-configured backend data.Services ###
+{% for name, service in data.Services %}
+backend {{ service.Service }}_backend
+{% endfor %}
