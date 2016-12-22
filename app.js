@@ -1,11 +1,14 @@
-var nunjucks      = require('nunjucks');
-var path          = require('path');
-var fs            = require('fs');
-var mkdirp        = require('mkdirp');
-var consul        = require('consul')();
-var config        = require('config');
-var env           = new nunjucks.Environment(new nunjucks.FileSystemLoader('.'));
-var child_process = require('child_process');
+var nunjucks         = require('nunjucks');
+var path             = require('path');
+var fs               = require('fs');
+var mkdirp           = require('mkdirp');
+var config           = require('config');
+var consulHost       = config.get('consul.host');
+var consul           = require('consul')({
+    host: consulHost
+});
+var env              = new nunjucks.Environment(new nunjucks.FileSystemLoader('.'));
+var child_process    = require('child_process');
 
 env.addFilter('split', function(str, seperator) {
     return str.split(seperator);

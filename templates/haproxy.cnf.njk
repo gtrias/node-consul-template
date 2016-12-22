@@ -13,9 +13,9 @@ defaults
     mode http
     option forwardfor
     option http-server-close
-    timeout connect "5000ms"
-    timeout client "50000ms"
-    timeout server "50000ms"
+    timeout connect 5000ms
+    timeout client 50000ms
+    timeout server 50000ms
 
 ### HTTP(S) frontend ###
 frontend www
@@ -40,13 +40,13 @@ frontend www
 
 {% endfor %}
 
-frontend www-https
+{# frontend www-https #}
 {% for name, service in data.Services %}
-    bind *:443 ssl crt /etc/haproxy/certs/example.com.pem
+    {# bind *:443 ssl crt /etc/haproxy/certs/example.com.pem
     reqadd X-Forwarded-Proto:\ https
     acl letsencrypt-acl path_beg /.well-known/acme-challenge/
     use_backend letsencrypt-backend if letsencrypt-acl
-    default_backend www-backend
+    default_backend www-backend #}
 {% endfor %}
 
 ### Consul-configured backend data.Services ###

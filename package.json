@@ -1,5 +1,10 @@
 {
   "name": "nodejs-consul-template",
+
+  "repository" : {
+    "type" : "git",
+    "url" : "https://github.com/gtrias/node-consul-template.git"
+  },
   "version": "1.0.0",
   "description": "Consume Consul services and KV to write configuration files",
   "main": "app.js",
