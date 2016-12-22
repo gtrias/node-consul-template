@@ -20,9 +20,6 @@ defaults
 ### HTTP(S) frontend ###
 frontend www
     bind *:80
-    {% if env.HAPROXY_USESSL %}
-    bind *:443 ssl crt /haproxy/ssl.crt
-    {% endif %}
 
     reqadd X-Forwarded-Proto:\ http if !{ ssl_fc }
     reqadd X-Forwarded-Proto:\ https if { ssl_fc }
@@ -43,7 +40,19 @@ frontend www
 
 {% endfor %}
 
+frontend www-https
+{% for name, service in data.Services %}
+    bind *:443 ssl crt /etc/haproxy/certs/example.com.pem
+    reqadd X-Forwarded-Proto:\ https
+    acl letsencrypt-acl path_beg /.well-known/acme-challenge/
+    use_backend letsencrypt-backend if letsencrypt-acl
+    default_backend www-backend
+{% endfor %}
+
 ### Consul-configured backend data.Services ###
 {% for name, service in data.Services %}
 backend {{ service.Service }}_backend
 {% endfor %}
+
+backend letsencrypt-backend
+    server letsencrypt 127.0.0.1:54321

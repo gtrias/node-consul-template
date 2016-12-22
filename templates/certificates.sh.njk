@@ -23,7 +23,7 @@ echo -n "$fqdn"
 
 if [ ! -f /etc/letsencrypt/live/$fqdn/fullchain.pem ] && [ ! -f /etc/letsencrypt/live/$fqdn/privkey.pem ]; then
     echo " creating.."
-    certbot auth --non-interactive --text -a standalone --agree-tos --email $email --standalone-supported-challenges http-01 -d $fqdn && \
+    certbot auth --non-interactive --text -a standalone --agree-tos --email $email --standalone-supported-challenges http-01 --http-01-port 54321 -d $fqdn && \
     cat /etc/letsencrypt/live/$fqdn/fullchain.pem /etc/letsencrypt/live/$fqdn/privkey.pem > /certificates/$fqdn.pem
 else
     echo " exists"
