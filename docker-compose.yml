@@ -17,6 +17,7 @@ services:
         - /var/run/docker.sock:/tmp/docker.sock
         command: -internal=true consul://localhost:8500
 
+    # This is a standard consul-template usage
     # consul-template:
     #    build: .
     #    depends_on:
@@ -46,6 +47,23 @@ services:
         - /etc/consul-template
         environment:
         - 'NODE_CONFIG={"consul":{"host":"consul"},"templates":[{"source":"templates/haproxy.cnf.njk","path":"dump","filename":"haproxy.cfg","command":"haproxy -D -p /var/run/haproxy.pid  -f /app/dump/haproxy.cfg -sf $$(cat /var/run/haproxy.pid) || true" }]}'
+
+    # Autoconfigration of letsencrypt certificates
+    consul-template-cerbot:
+        build:
+            context: .
+            dockerfile: Dockerfile-cerbot
+        depends_on:
+        - consul
+        links:
+        - consul
+        ports:
+        - 80
+        volumes:
+        - ./dump/certs:/etc/letsencrypt/live
+        environment:
+        - 'NODE_CONFIG={"consul":{"host":"consul"},"templates":[{ "source": "templates/certificates.sh.njk", "path": "dump/", "filename": "certificates.sh", "command": "chmod +x dump/certificates.sh && dump/certificates.sh" }]}'
+
 
     # Testing containers
     whoami1:
