@@ -20,6 +20,12 @@ npm install
 docker run -d --name node-consul-template gtrias/node-consul-template
 ```
 
+## Run as standalone
+
+```bash
+npm start
+```
+
 ## Configuration file
 
 The templates to be rendered and the command to run after successful generated template can be configured in a json file (or environment variable).
@@ -73,4 +79,45 @@ tags as follow environment:
 
 This template reders a `.sh` script to execute cerbot for all services containing SSL_VIRTUAL_HOST and SSL_EMAIL.
 
-It is based on [phylor/letsencrypt-consul](https://github.com/phylor/letsencrypt-consul)
+It is inspired on [phylor/letsencrypt-consul](https://github.com/phylor/letsencrypt-consul)
+
+
+## Tests
+
+### Start environment
+
+To start Playground just run docker-compose as follows:
+
+```bash
+docker-compose up
+```
+Once all containers are running you will see all related services logs
+
+### Make some requests
+
+Then you can send requests to whoami as follows:
+
+```bash
+watch curl -H Host:whoami.example.com  127.0.0.1:<port>
+```
+
+Note: By default docker-compose will not expose anything to 80 port so you will have to run `docker ps` to see which port is set to the consul-template-haproxy container...
+
+You can see how the results are changing indicating that each request is propertly balanced.
+
+### Testing container deregisters
+
+Keep watching the results of above curl and run the next command.
+
+```bash
+docker stop nodeconsultemplate_whoami_1
+```
+Then you can see how no request arrives to that container (you can check this seeing the id)
+
+### Testing container registers
+
+Same as before, we will start again the same container:
+
+```bash
+docker start nodeconsultemplate_whoami_1
+```
