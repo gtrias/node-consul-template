@@ -26,11 +26,21 @@ services:
         volumes:
         - /etc/haproxy
         - /etc/consul-template
-        # command: "-config=/etc/consul-template/consul-template.cfg -log-level=debug"
-        # command: "-config=/etc/consul-template/consul-template.cfg"
 
     # Testing containers
     whoami1:
+        image: emilevauge/whoami
+        ports:
+        - 80
+        environment:
+        - 'SERVICE_TAGS=VIRTUAL_HOST=whoami.example.com,SSL_VIRTUAL_HOST=whoami.example.com,SSL_EMAIL=info@example.com'
+    whoami2:
+        image: emilevauge/whoami
+        ports:
+        - 80
+        environment:
+        - 'SERVICE_TAGS=VIRTUAL_HOST=whoami.example.com,SSL_VIRTUAL_HOST=whoami.example.com,SSL_EMAIL=info@example.com'
+    whoami3:
         image: emilevauge/whoami
         ports:
         - 80

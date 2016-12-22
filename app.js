@@ -1,11 +1,11 @@
-var nunjucks    = require('nunjucks');
-var path        = require('path');
-var fs          = require('fs');
-var mkdirp      = require('mkdirp');
-var consul      = require('consul')();
-var config      = require('config');
-var env         = new nunjucks.Environment(new nunjucks.FileSystemLoader('.'));
-var exec = require('child_process').exec;
+var nunjucks      = require('nunjucks');
+var path          = require('path');
+var fs            = require('fs');
+var mkdirp        = require('mkdirp');
+var consul        = require('consul')();
+var config        = require('config');
+var env           = new nunjucks.Environment(new nunjucks.FileSystemLoader('.'));
+var child_process = require('child_process');
 
 env.addFilter('split', function(str, seperator) {
     return str.split(seperator);
@@ -29,19 +29,35 @@ function startWatcher(node) {
             mkdirp.sync(templateDir);
             fs.writeFileSync(path.join(templateDir, filename), result);
 
-            exec(element.command, function(error, stdout, stderr) {
-                if (error) return console.log(error);
-                console.log(stderr);
-                console.log(stdout);
-                  // command output is in stdout
-            });
-
+            startCommand(element.command);
             console.log(result);
         });
     });
 
     watch.on('error', function(err) {
-          console.log('error:', err);
+        console.log('error:', err);
+    });
+}
+
+var startCommand = function (daemon) {
+    var command = child_process.exec(daemon);
+
+    // Capturing stdout
+    command.stdout.on('data',
+        function (data) {
+            console.log('tail output: ' + data);
+        }
+    );
+
+    // Capturing stderr
+    command.stderr.on('data',
+        function (data) {
+            console.log('err data: ' + data);
+        }
+    );
+
+    process.on('exit', function () {
+        command.kill();
     });
 }
 
