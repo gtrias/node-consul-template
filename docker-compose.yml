@@ -15,7 +15,7 @@ services:
         network_mode: host
         volumes:
         - /var/run/docker.sock:/tmp/docker.sock
-        command: consul://localhost:8500
+        command: -internal=true consul://localhost:8500
 
     # consul-template:
     #    build: .

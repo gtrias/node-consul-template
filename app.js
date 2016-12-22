@@ -2,6 +2,7 @@ var nunjucks         = require('nunjucks');
 var path             = require('path');
 var fs               = require('fs');
 var mkdirp           = require('mkdirp');
+var _                = require('underscore');
 var config           = require('config');
 var consulHost       = config.get('consul.host');
 var consul           = require('consul')({
@@ -12,6 +13,11 @@ var child_process    = require('child_process');
 
 env.addFilter('split', function(str, seperator) {
     return str.split(seperator);
+});
+
+env.addFilter('groupBy', function(arr, field) {
+    console.log('Grouped by result: ', _.groupBy(arr, field));
+    return _.groupBy(arr, field);
 });
 
 consul.agent.self(function(err, result) {

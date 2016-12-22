@@ -50,8 +50,11 @@ frontend www
 {% endfor %}
 
 ### Consul-configured backend data.Services ###
-{% for name, service in data.Services %}
-backend {{ service.Service }}_backend
+{% for key, services in data.Services | groupBy('Service') %}
+backend {{ key }}_backend
+    {% for service in services %}
+        server {{ service.Service }}-{{ service.Port }} {{ service.Address}}:{{ service.Port }}
+    {% endfor %}
 {% endfor %}
 
 backend letsencrypt-backend
