@@ -7,7 +7,8 @@ services:
         ports:
         - 8400:8400
         - 8500:8500
-        - 53:8600/udp
+        - 8600:8600/udp
+        # - 53:8600/udp -> Use this to bind consul to the DNS port and use DNS resolution
     registrator:
         image: gliderlabs/registrator
         depends_on:
