@@ -1,5 +1,8 @@
 #!/bin/sh
-{% for name, service in data.Services -%}
+
+echo -n "Modified template"
+
+{% for key, services in data.Services | groupBy('Service') %}
     {% set sslVirtualHost -%}
         {%- for tag in service.Tags -%}
             {%- set fields = tag |split("=") -%}

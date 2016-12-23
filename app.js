@@ -16,7 +16,6 @@ env.addFilter('split', function(str, seperator) {
 });
 
 env.addFilter('groupBy', function(arr, field) {
-    console.log('Grouped by result: ', _.groupBy(arr, field));
     return _.groupBy(arr, field);
 });
 

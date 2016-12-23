@@ -29,14 +29,14 @@ frontend www
     use_backend letsencrypt-backend if letsencrypt-acl
 
     # Generated automatically by consul-template
-{% for name, service in data.Services %}
+{% for name, service in data.Services -%}
     acl host_{{ service.Service }} hdr_beg(host) -i {{ service.Service }}.{{ "service.consul" }}
     use_backend {{ service.Service }}_backend if host_{{ service.Service }}
 
-    {% for tag in service.Tags %}
-        {% set candyArray = tag |split("=") %}
-        {% if candyArray[0] === 'VIRTUAL_HOST' %}
-            {% set virtualHost = candyArray[1] %}
+    {% for tag in service.Tags -%}
+        {% set candyArray = tag |split("=") -%}
+        {% if candyArray[0] === 'VIRTUAL_HOST' -%}
+            {% set virtualHost = candyArray[1] -%}
             acl host_{{ virtualHost }} hdr_beg(host) -i {{ virtualHost }}
             use_backend {{ service.Service }}_backend if host_{{ virtualHost }}
         {% endif %}
@@ -55,7 +55,7 @@ frontend www
 {% for key, services in data.Services | groupBy('Service') %}
 backend {{ key }}_backend
     {% for service in services %}
-        server {{ service.Service }}-{{ service.Port }} {{ service.Address}}:{{ service.Port }}
+        server {{ service.ID | replace(":", "-") }}-{{ key }}-{{ service.Port }} {{ service.Address}}:{{ service.Port }}
     {% endfor %}
 {% endfor %}
 
