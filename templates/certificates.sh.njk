@@ -3,22 +3,25 @@
 echo -n "Modified template"
 
 {% for key, services in data.Services | groupBy('Service') %}
-    {% set sslVirtualHost -%}
-        {%- for tag in service.Tags -%}
-            {%- set fields = tag |split("=") -%}
-            {%- if fields[0] === 'SSL_VIRTUAL_HOST' -%}
-                {{- fields[1] -}}
-            {%- endif -%}
-        {%- endfor -%}
-    {% endset %}
-    {% set sslEmail -%}
-        {%- for tag in service.Tags -%}
-            {%- set fields = tag |split("=") -%}
-            {%- if fields[0] === 'SSL_EMAIL' -%}
-                {{- fields[1] -}}
-            {%- endif -%}
-        {%- endfor -%}
-    {% endset %}
+    {% for service in services %}
+        {% set sslVirtualHost -%}
+            {%- for tag in service.Tags -%}
+                {%- set fields = tag |split("=") -%}
+                {%- if fields[0] === 'SSL_VIRTUAL_HOST' -%}
+                    {{- fields[1] -}}
+                {%- endif -%}
+            {%- endfor -%}
+        {% endset %}
+        {% set sslEmail -%}
+            {%- for tag in service.Tags -%}
+                {%- set fields = tag |split("=") -%}
+                {%- if fields[0] === 'SSL_EMAIL' -%}
+                    {{- fields[1] -}}
+                {%- endif -%}
+            {%- endfor -%}
+        {% endset %}
+    {% endfor %}
+
     {%if sslVirtualHost.length and sslEmail.length %}
 fqdn={{- sslVirtualHost }}
 email={{- sslEmail }}
