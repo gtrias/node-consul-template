@@ -82,7 +82,7 @@ This template reders a `.sh` script to execute cerbot for all services containin
 It is inspired on [phylor/letsencrypt-consul](https://github.com/phylor/letsencrypt-consul)
 
 
-## Tests
+## Quickstart
 
 ### Start environment
 
@@ -120,4 +120,25 @@ Same as before, we will start again the same container:
 
 ```bash
 docker start nodeconsultemplate_whoami_1
+```
+
+## Extending container
+
+This container is prepared to be a wrapper of other containers with the command you need to run
+with your discovered services.
+To make your own integration just make your own `Dockerfile` FROM gtrias/node-consul-template
+
+Example with HAproxy installed:
+
+```
+FROM gtrias/node-consul-template
+
+MAINTAINER Genar <genar@acs.li>
+
+# add jessie-backports for Docker package
+RUN echo "deb http://http.debian.net/debian jessie-backports main" > /etc/apt/sources.list.d/backports.list
+
+RUN apt-get update && apt-get install -y unzip haproxy && apt-get install -y certbot -t jessie-backports
+
+EXPOSE 80 443
 ```

@@ -24,6 +24,10 @@ frontend www
     reqadd X-Forwarded-Proto:\ http if !{ ssl_fc }
     reqadd X-Forwarded-Proto:\ https if { ssl_fc }
 
+    # Letsencrypt validation proxy
+    acl letsencrypt-acl path_beg /.well-known/acme-challenge/
+    use_backend letsencrypt-backend if letsencrypt-acl
+
     # Generated automatically by consul-template
 {% for name, service in data.Services %}
     acl host_{{ service.Service }} hdr_beg(host) -i {{ service.Service }}.{{ "service.consul" }}
@@ -44,8 +48,6 @@ frontend www
 {% for name, service in data.Services %}
     {# bind *:443 ssl crt /etc/haproxy/certs/example.com.pem
     reqadd X-Forwarded-Proto:\ https
-    acl letsencrypt-acl path_beg /.well-known/acme-challenge/
-    use_backend letsencrypt-backend if letsencrypt-acl
     default_backend www-backend #}
 {% endfor %}
 
