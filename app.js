@@ -1,8 +1,8 @@
+var _                = require('underscore');
 var nunjucks         = require('nunjucks');
 var path             = require('path');
 var fs               = require('fs');
 var mkdirp           = require('mkdirp');
-var _                = require('underscore');
 var config           = require('config');
 var consulHost       = config.get('consul.host');
 var consul           = require('consul')({
@@ -35,7 +35,6 @@ function startWatcher(node) {
     var watch = consul.watch({ method: consul.catalog.node.services, options: {'node': node}});
 
     watch.on('change', function(data, res) {
-        console.log(data.Services);
         config.get("templates").forEach(function (element) {
             var result = env.render(element.source, { data: data });
             var templateDir = path.join(element.path);
@@ -44,7 +43,6 @@ function startWatcher(node) {
             fs.writeFileSync(path.join(templateDir, filename), result);
 
             startCommand(element.command);
-            console.log(result);
         });
     });
 

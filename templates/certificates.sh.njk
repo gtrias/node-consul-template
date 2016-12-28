@@ -1,28 +1,24 @@
 #!/bin/sh
 
-echo -n "Modified template"
-
 {% for key, services in data.Services | groupBy('Service') %}
+    {% set sslVirtualHost = '' %}
+    {% set sslEmail = '' %}
     {% for service in services %}
-        {% set sslVirtualHost -%}
-            {%- for tag in service.Tags -%}
-                {%- set fields = tag |split("=") -%}
-                {%- if fields[0] === 'SSL_VIRTUAL_HOST' -%}
-                    {{- fields[1] -}}
-                {%- endif -%}
-            {%- endfor -%}
-        {% endset %}
-        {% set sslEmail -%}
-            {%- for tag in service.Tags -%}
-                {%- set fields = tag |split("=") -%}
-                {%- if fields[0] === 'SSL_EMAIL' -%}
-                    {{- fields[1] -}}
-                {%- endif -%}
-            {%- endfor -%}
-        {% endset %}
+        {%- for tag in service.Tags -%}
+            {%- set fields = tag |split("=") -%}
+            {%- if fields[0] == "SSL_VIRTUAL_HOST" -%}
+                {% set sslVirtualHost = fields[1] %}
+            {%- endif -%}
+        {%- endfor -%}
+        {%- for tag in service.Tags -%}
+            {%- set fields = tag |split("=") -%}
+            {%- if fields[0] == "SSL_EMAIL" -%}
+                {% set sslEmail = fields[1] %}
+            {%- endif -%}
+        {%- endfor -%}
     {% endfor %}
 
-    {%if sslVirtualHost.length and sslEmail.length %}
+{% if sslVirtualHost.length and sslEmail.length %}
 fqdn={{- sslVirtualHost }}
 email={{- sslEmail }}
 echo -n "$fqdn"
@@ -35,4 +31,5 @@ else
     echo " exists"
 fi
 {%- endif %}
+
 {%- endfor %}
