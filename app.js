@@ -32,22 +32,27 @@ consul.agent.self(function(err, result) {
 
 // Starting watcher
 function startWatcher(node) {
+    console.log('Starting watcher');
     var watch = consul.watch({ method: consul.catalog.node.services, options: {'node': node}});
 
     watch.on('change', function(data, res) {
-        config.get("templates").forEach(function (element) {
-            var result = env.render(element.source, { data: data });
-            var templateDir = path.join(element.path);
-            var filename = element.filename;
-            mkdirp.sync(templateDir);
-            fs.writeFileSync(path.join(templateDir, filename), result);
-
-            startCommand(element.command);
-        });
+        renderTemplates(data);
     });
 
     watch.on('error', function(err) {
         console.log('error:', err);
+    });
+}
+
+function renderTemplates(data) {
+    config.get("templates").forEach(function (element) {
+        var result = env.render(element.source, { data: data });
+        var templateDir = path.join(element.path);
+        var filename = element.filename;
+        mkdirp.sync(templateDir);
+        fs.writeFileSync(path.join(templateDir, filename), result);
+
+        startCommand(element.command);
     });
 }
 

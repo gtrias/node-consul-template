@@ -140,3 +140,10 @@ RUN apt-get update && apt-get install -y unzip haproxy && apt-get install -y cer
 
 EXPOSE 80 443
 ```
+
+## Specifing configuration for exposed port
+
+If you want to define which VIRTUAL_HOST or SSL_VIRTUAL_HOST should have a specific port (Consul see each port as a different service).
+You can use (registrator specific notation)[http://gliderlabs.com/registrator/latest/user/services/#container-overrides].
+
+For example define `SERVICE_9091_TAGS` instead of `SERVICE_TAGS` to configure the tags that the port 9091 should receive.
