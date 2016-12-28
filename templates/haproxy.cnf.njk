@@ -34,9 +34,9 @@ frontend www
     use_backend {{ service.Service }}_backend if host_{{ service.Service }}
 
     {% for tag in service.Tags -%}
-        {% set candyArray = tag |split("=") -%}
-        {% if candyArray[0] === 'VIRTUAL_HOST' -%}
-            {% set virtualHost = candyArray[1] -%}
+        {% set kvTag = tag |split("=") -%}
+        {% if kvTag[0] === 'VIRTUAL_HOST' -%}
+            {% set virtualHost = kvTag[1] -%}
             acl host_{{ virtualHost }} hdr_beg(host) -i {{ virtualHost }}
             use_backend {{ service.Service }}_backend if host_{{ virtualHost }}
         {% endif %}
@@ -44,12 +44,26 @@ frontend www
 
 {% endfor %}
 
-{# frontend www-https #}
-{% for name, service in data.Services %}
-    {# bind *:443 ssl crt /etc/haproxy/certs/example.com.pem
+{#
+frontend www-https
+{% for key, services in data.Services | groupBy('Service') %}
+
+    {% for tag in service.Tags -%}
+        {% set kvTag = tag |split("=") -%}
+        {% if kvTag[0] === 'SSL_VIRTUAL_HOST' -%}
+            {% set virtualHost = kvTag[1] -%}
+            acl host_{{ virtualHost }} hdr_beg(host) -i {{ virtualHost }}
+            use_backend {{ service.Service }}_backend if host_{{ virtualHost }}
+        {% endif %}
+    {% endfor %}
+
+{% if fileExists('/etc/haproxy/certs/example.com.pem') %}
+    bind *:443 ssl crt /etc/haproxy/certs/example.com.pem
     reqadd X-Forwarded-Proto:\ https
-    default_backend www-backend #}
+    default_backend www-backend
+{% endif %}
 {% endfor %}
+#}
 
 ### Consul-configured backend data.Services ###
 {% for key, services in data.Services | groupBy('Service') %}

@@ -133,8 +133,6 @@ Example with HAproxy installed:
 ```
 FROM gtrias/node-consul-template
 
-MAINTAINER Genar <genar@acs.li>
-
 # add jessie-backports for Docker package
 RUN echo "deb http://http.debian.net/debian jessie-backports main" > /etc/apt/sources.list.d/backports.list
 

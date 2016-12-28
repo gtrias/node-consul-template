@@ -19,12 +19,18 @@ env.addFilter('groupBy', function(arr, field) {
     return _.groupBy(arr, field);
 });
 
+env.addFilter('fileExists', function(arr, file) {
+    return fs.existsSync(file);
+});
+
+// Getting consul agent nodename to start watcher
 consul.agent.self(function(err, result) {
     if (err) return console.log(err);
     var nodeName = result.Config.NodeName;
     startWatcher(nodeName);
 });
 
+// Starting watcher
 function startWatcher(node) {
     var watch = consul.watch({ method: consul.catalog.node.services, options: {'node': node}});
 

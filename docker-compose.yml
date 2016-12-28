@@ -60,7 +60,7 @@ services:
         links:
         - consul
         ports:
-        - 5432:80
+        - 54321:54321
         volumes:
         - ./dump:/app/dump
         - ./dump/certs:/etc/letsencrypt/live
