@@ -16,7 +16,7 @@ services:
         network_mode: host
         volumes:
         - /var/run/docker.sock:/tmp/docker.sock
-        command: consul://localhost:8500
+        command: -internal=true consul://localhost:8500
 
     # This is a standard consul-template usage
     # Autoconfigured haproxy
@@ -41,6 +41,8 @@ services:
     cerbot-consul-server:
         image: gtrias/cerbot-consul-server
         network_mode: host
+        volumes:
+        - ./dump/certs:/root/letsencrypt
         ports:
         - 54321:54321
         environment:
