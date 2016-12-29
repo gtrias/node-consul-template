@@ -23,12 +23,21 @@ env.addFilter('fileExists', function(arr, file) {
     return fs.existsSync(file);
 });
 
+
 // Getting consul agent nodename to start watcher
-consul.agent.self(function(err, result) {
-    if (err) return console.log(err);
-    var nodeName = result.Config.NodeName;
-    startWatcher(nodeName);
-});
+function startListen() {
+    consul.agent.self(function(err, result) {
+        if (err) {
+            console.log(err);
+            startListen();
+        } else {
+            var nodeName = result.Config.NodeName;
+            startWatcher(nodeName);
+        }
+    });
+}
+// First execution
+startListen();
 
 // Starting watcher
 function startWatcher(node) {

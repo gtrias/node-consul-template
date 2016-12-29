@@ -38,6 +38,14 @@ services:
         environment:
         - 'NODE_CONFIG={"consul":{"host":"127.0.0.1"},"templates":[{"source":"templates/haproxy.cnf.njk","path":"dump","filename":"haproxy.cfg","command":"haproxy -D -p /var/run/haproxy.pid  -f /app/dump/haproxy.cfg -sf $$(cat /var/run/haproxy.pid) || true" }]}'
 
+    cerbot-consul-server:
+        image: gtrias/cerbot-consul-server
+        network_mode: host
+        ports:
+        - 54321:54321
+        environment:
+        - 'NODE_CONFIG={"consul":{"host":"127.0.0.1"}}'
+
     # Testing containers
     whoami1:
         image: emilevauge/whoami
