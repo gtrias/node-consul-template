@@ -52,16 +52,21 @@ frontend www-https
         {% set kvTag = tag |split("=") -%}
         {% if kvTag[0] === 'SSL_VIRTUAL_HOST' -%}
             {% set virtualHost = kvTag[1] -%}
-            acl host_{{ virtualHost }} hdr_beg(host) -i {{ virtualHost }}
-            use_backend {{ service.Service }}_backend if host_{{ virtualHost }}
+            {% set certPath = ['/certificates/etc/live/', virtualHost, '/fullchain0.pem'] | join %}
+            {% if fileExists(certPath) %}
+                bind *:443 ssl crt {{ certPath }}
+                reqadd X-Forwarded-Proto:\ https
+                default_backend www-backend
+
+
+                acl host_{{ virtualHost }} hdr_beg(host) -i {{ virtualHost }}
+                use_backend {{ service.Service }}_backend if host_{{ virtualHost }}
+
+            {% endif %}
+
         {% endif %}
     {% endfor %}
 
-{% if fileExists('/etc/haproxy/certs/example.com.pem') %}
-    bind *:443 ssl crt /etc/haproxy/certs/example.com.pem
-    reqadd X-Forwarded-Proto:\ https
-    default_backend www-backend
-{% endif %}
 {% endfor %}
 #}
 
