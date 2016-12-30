@@ -4,6 +4,7 @@ var path             = require('path');
 var fs               = require('fs');
 var mkdirp           = require('mkdirp');
 var config           = require('config');
+var async =  require('async');
 var consulHost       = config.get('consul.host');
 var consul           = require('consul')({
     host: consulHost
@@ -45,11 +46,26 @@ function startWatcher(node) {
     var watch = consul.watch({ method: consul.catalog.service.list, options: {'node': node}});
 
     watch.on('change', function(data, res) {
-        consul.agent.service.list(function(err, result) {
+	var services = [];
+
+	async.forEachOf(data, function(service, key, callback) {
+        consul.catalog.service.nodes(key, function(err, result) {
             if (err) throw err;
-            // console.log(result);
-            renderTemplates({Services: result});
+
+	    services.push({
+	      ID: key,
+	      nodes: result
+	    })
+
+	    callback();
+	    // console.log(result);
         });
+      }, function (err) {
+	if (err) return console.log(err);
+
+	renderTemplates({Services: services});
+      });
+
     });
 
     watch.on('error', function(err) {
@@ -59,7 +75,9 @@ function startWatcher(node) {
 
 function renderTemplates(data) {
     config.get("templates").forEach(function (element) {
+console.log(data);
         var result = env.render(element.source, { data: data });
+console.log(result);
         var templateDir = path.join(element.path);
         var filename = element.filename;
         mkdirp.sync(templateDir);

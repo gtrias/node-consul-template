@@ -29,24 +29,28 @@ frontend www
     use_backend letsencrypt-backend if letsencrypt-acl
 
     # Generated automatically by consul-template
-{% for name, service in data.Services -%}
-    acl host_{{ service.Service }} hdr_beg(host) -i {{ service.Service }}.{{ "service.consul" }}
-    use_backend {{ service.Service }}_backend if host_{{ service.Service }}
+{%- for service in data.Services %}
+    acl host_{{ service.ID }} hdr_beg(host) -i {{ service.ID }}.{{ "service.consul" }}
+    use_backend {{ service.ID }}_backend if host_{{ service.ID }}
 
-    {% for tag in service.Tags -%}
-        {% set kvTag = tag |split("=") -%}
-        {% if kvTag[0] === 'VIRTUAL_HOST' -%}
-            {% set virtualHost = kvTag[1] -%}
-            acl host_{{ virtualHost }} hdr_beg(host) -i {{ virtualHost }}
-            use_backend {{ service.Service }}_backend if host_{{ virtualHost }}
-        {% endif %}
+    {% for node in service.nodes -%}
+	{% for node in service.nodes -%}
+	    {% for tag in node.ServiceTags -%}
+		{% set kvTag = tag |split("=") -%}
+		{% if kvTag[0] === 'VIRTUAL_HOST' -%}
+		    {% set virtualHost = kvTag[1] -%}
+		    acl host_{{ virtualHost }} hdr_beg(host) -i {{ virtualHost }}
+		    use_backend {{ service.ID }}_backend if host_{{ virtualHost }}
+		{% endif %}
+	    {% endfor %}
+	{% endfor %}
     {% endfor %}
 
 {% endfor %}
 
 {#
 frontend www-https
-{% for key, services in data.Services | groupBy('Service') %}
+{% for key, services in data.Services %}
 
     {% for tag in service.Tags -%}
         {% set kvTag = tag |split("=") -%}
@@ -60,7 +64,7 @@ frontend www-https
 
 
                 acl host_{{ virtualHost }} hdr_beg(host) -i {{ virtualHost }}
-                use_backend {{ service.Service }}_backend if host_{{ virtualHost }}
+                use_backend {{ service.ID }}_backend if host_{{ virtualHost }}
 
             {% endif %}
 
@@ -71,10 +75,10 @@ frontend www-https
 #}
 
 ### Consul-configured backend data.Services ###
-{% for key, services in data.Services | groupBy('Service') %}
-backend {{ key }}_backend
-    {% for service in services %}
-        server {{ service.ID | replace(":", "-") }}-{{ key }}-{{ service.Port }} {{ service.Address}}:{{ service.Port }}
+{% for service in data.Services %}
+backend {{ service.ID }}_backend
+    {% for node in service.nodes %}
+        server {{ node.ServiceID | replace(":", "-") }}-{{ service.ID }}-{{ node.ServicePort }} {{ node.Address}}:{{ node.ServicePort }}
     {% endfor %}
 {% endfor %}
 
