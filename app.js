@@ -32,8 +32,7 @@ function startListen() {
             console.log(err);
             startListen();
         } else {
-            var nodeName = result.Config.NodeName;
-            startWatcher(nodeName);
+            startWatcher(result);
         }
     });
 }
@@ -42,8 +41,10 @@ startListen();
 
 // Starting watcher
 function startWatcher(node) {
+    var nodeName = node.Config.NodeName;
+    console.log(node);
     console.log('Starting watcher');
-    var watch = consul.watch({ method: consul.catalog.service.list, options: {'node': node}});
+    var watch = consul.watch({ method: consul.catalog.service.list, options: {'node': nodeName}});
 
     watch.on('change', function(data, res) {
 	var services = [];
@@ -63,7 +64,10 @@ function startWatcher(node) {
       }, function (err) {
 	if (err) return console.log(err);
 
-	renderTemplates({Services: services});
+	renderTemplates({
+		Services: services,
+		Node: node
+	});
       });
 
     });

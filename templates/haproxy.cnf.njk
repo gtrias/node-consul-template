@@ -78,7 +78,15 @@ frontend www-https
 {% for service in data.Services %}
 backend {{ service.ID }}_backend
     {% for node in service.nodes %}
-        server {{ node.ServiceID | replace(":", "-") }}-{{ service.ID }}-{{ node.ServicePort }} {{ node.Address}}:{{ node.ServicePort }}
+{% if data.Node.Config.AdvertiseAddr == node.Address %}
+{% if node.ServiceAddress %}
+        server {{ node.ServiceID | replace(":", "-") }}-{{ service.ID }}-{{ node.ServicePort }} {{ node.ServiceAddress}}:{{ node.ServicePort }}
+{% endif %}
+{% else %}
+{% if node.Address %}
+        server {{ node.ServiceID | replace(":", "-") }}-{{ service.ID }}-{{ node.ServicePort }} {{ node.Address}}:80
+{% endif %}
+{% endif %}
     {% endfor %}
 {% endfor %}
 
