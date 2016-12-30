@@ -1,4 +1,5 @@
 global
+    log 127.0.0.1 local0
     maxconn 2048
     debug
     # Recommended SSL ciphers as per https://hynek.me/articles/hardening-your-web-servers-ssl-ciphers/
@@ -10,16 +11,25 @@ global
     tune.ssl.default-dh-param 2048
 
 defaults
+    log             global
     mode http
     option forwardfor
-    option http-server-close
+    option httplog
     timeout connect 5000ms
     timeout client 50000ms
     timeout server 50000ms
 
+listen stats :9000  # Listen on localhost:9000
+	mode http
+	stats enable  # Enable stats page
+	stats hide-version  # Hide HAProxy version
+	stats realm Haproxy\ Statistics  # Title text for popup window
+	stats uri /haproxy_stats  # Stats URI
+	stats auth genar:1234  # Authentication credentials
+
 ### HTTP(S) frontend ###
 frontend www
-    bind *:80
+    bind *:81
 
     reqadd X-Forwarded-Proto:\ http if !{ ssl_fc }
     reqadd X-Forwarded-Proto:\ https if { ssl_fc }
@@ -78,17 +88,12 @@ frontend www-https
 {% for service in data.Services %}
 backend {{ service.ID }}_backend
     {% for node in service.nodes %}
-{% if data.Node.Config.AdvertiseAddr == node.Address %}
-{% if node.ServiceAddress %}
-        server {{ node.ServiceID | replace(":", "-") }}-{{ service.ID }}-{{ node.ServicePort }} {{ node.ServiceAddress}}:{{ node.ServicePort }}
-{% endif %}
-{% else %}
-{% if node.Address %}
-        server {{ node.ServiceID | replace(":", "-") }}-{{ service.ID }}-{{ node.ServicePort }} {{ node.Address}}:80
-{% endif %}
-{% endif %}
+        server {{ node.ServiceID | replace(":", "-") }}-{{ service.ID }}-{{ node.ServicePort }} {{ node.Address}}:{{ node.ServicePort }}
     {% endfor %}
 {% endfor %}
 
 backend letsencrypt-backend
     server letsencrypt 127.0.0.1:54321
+
+
+

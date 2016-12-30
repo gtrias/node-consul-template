@@ -59,7 +59,6 @@ function startWatcher(node) {
 	    })
 
 	    callback();
-	    // console.log(result);
         });
       }, function (err) {
 	if (err) return console.log(err);
