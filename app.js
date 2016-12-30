@@ -42,10 +42,14 @@ startListen();
 // Starting watcher
 function startWatcher(node) {
     console.log('Starting watcher');
-    var watch = consul.watch({ method: consul.catalog.node.services, options: {'node': node}});
+    var watch = consul.watch({ method: consul.catalog.service.list, options: {'node': node}});
 
     watch.on('change', function(data, res) {
-        renderTemplates(data);
+        consul.agent.service.list(function(err, result) {
+            if (err) throw err;
+            // console.log(result);
+            renderTemplates({Services: result});
+        });
     });
 
     watch.on('error', function(err) {
