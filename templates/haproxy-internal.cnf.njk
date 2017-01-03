@@ -1,21 +1,11 @@
-global
-    maxconn 2048
-    debug
-    # Recommended SSL ciphers as per https://hynek.me/articles/hardening-your-web-servers-ssl-ciphers/
-    ssl-default-bind-options no-sslv3
-    ssl-default-bind-ciphers ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:ECDH+3DES:DH+3DES:RSA+AESGCM:RSA+AES:RSA+3DES:!aNULL:!MD5:!DSS
+### Global partial
+{% include "./_global.njk" %}
 
-    ssl-default-server-options no-sslv3
-    ssl-default-server-ciphers ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:ECDH+3DES:DH+3DES:RSA+AESGCM:RSA+AES:RSA+3DES:!aNULL:!MD5:!DSS
-    tune.ssl.default-dh-param 2048
+### Defaults partial
+{% include "./_defaults.njk" %}
 
-defaults
-    mode http
-    option forwardfor
-    option http-server-close
-    timeout connect 5000ms
-    timeout client 50000ms
-    timeout server 50000ms
+### Stats partial
+{% include "./_stats.njk" %}
 
 ### HTTP(S) frontend ###
 frontend www
@@ -48,31 +38,25 @@ frontend www
 
 {% endfor %}
 
-{#
 frontend www-https
+    bind *:443 ssl
 {% for key, services in data.Services %}
-
     {% for tag in service.Tags -%}
         {% set kvTag = tag |split("=") -%}
         {% if kvTag[0] === 'SSL_VIRTUAL_HOST' -%}
             {% set virtualHost = kvTag[1] -%}
             {% set certPath = ['/certificates/etc/live/', virtualHost, '/fullchain0.pem'] | join %}
             {% if fileExists(certPath) %}
-                bind *:443 ssl crt {{ certPath }}
+                 crt {{ certPath }}
                 reqadd X-Forwarded-Proto:\ https
                 default_backend www-backend
 
-
                 acl host_{{ virtualHost }} hdr_beg(host) -i {{ virtualHost }}
                 use_backend {{ service.ID }}_backend if host_{{ virtualHost }}
-
             {% endif %}
-
         {% endif %}
     {% endfor %}
-
 {% endfor %}
-#}
 
 ### Consul-configured backend data.Services ###
 {% for service in data.Services %}

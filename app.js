@@ -79,7 +79,7 @@ function startWatcher(node) {
 function renderTemplates(data) {
   config.get("templates").forEach(function (element) {
     console.log(data);
-    var result = env.render(element.source, { data: data });
+    var result = env.render(element.source, { data: data, globals: config.get('templateGlobals') });
     console.log(result);
     var templateDir = path.join(element.path);
     var filename = element.filename;
