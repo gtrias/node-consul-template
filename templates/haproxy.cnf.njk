@@ -9,7 +9,7 @@
 
 ### HTTP(S) frontend ###
 frontend www
-    bind *:81
+    bind *:{{-globals.haproxy.httpPort}}
 
     reqadd X-Forwarded-Proto:\ http if !{ ssl_fc }
     reqadd X-Forwarded-Proto:\ https if { ssl_fc }
