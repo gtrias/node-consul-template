@@ -4,9 +4,9 @@
     },
     "templates": [
     ],
-    "templateGlobals": [
+    "templateGlobals": {
       "haproxy": {
         "httpPort": 80
       }
-    ]
+    }
 }
