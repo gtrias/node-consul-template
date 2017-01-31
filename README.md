@@ -147,3 +147,15 @@ If you want to define which VIRTUAL_HOST or SSL_VIRTUAL_HOST should have a speci
 You can use (registrator specific notation)[http://gliderlabs.com/registrator/latest/user/services/#container-overrides].
 
 For example define `SERVICE_9091_TAGS` instead of `SERVICE_TAGS` to configure the tags that the port 9091 should receive.
+
+## Registrator internal VS no internal
+
+gliderlabs/registrator can register the internal Docker IP (i.e 172.19.0.2) with its internal exposed ports or external one (only exposed ones) with
+the host IP (i.e 192.168.55.101). [more about internal registration](http://gliderlabs.com/registrator/latest/user/services/)
+For this purpose there're two HAproxy templates to handle those thow behaviors.
+
+Check `templates/haproxy.cnf.njk` and `templates/haproxy-internal.cnf.njk`.
+
+The `haproxy-internal.cnf.njk` will check if the service is registered in the same machine where haproxy is running and getting the internal
+IP address and port to reach that service. If the service is from other host it will get the host IP address with default 80 port to bypass the
+balancing to the other host haproxy.

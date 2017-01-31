@@ -38,42 +38,41 @@ frontend www
 
 {% endfor %}
 
-{#
 frontend www-https
+    bind *:443 ssl
 {% for key, services in data.Services %}
-
     {% for tag in service.Tags -%}
         {% set kvTag = tag |split("=") -%}
         {% if kvTag[0] === 'SSL_VIRTUAL_HOST' -%}
             {% set virtualHost = kvTag[1] -%}
             {% set certPath = ['/certificates/etc/live/', virtualHost, '/fullchain0.pem'] | join %}
             {% if fileExists(certPath) %}
-                bind *:443 ssl crt {{ certPath }}
+                 crt {{ certPath }}
                 reqadd X-Forwarded-Proto:\ https
                 default_backend www-backend
 
-
                 acl host_{{ virtualHost }} hdr_beg(host) -i {{ virtualHost }}
                 use_backend {{ service.ID }}_backend if host_{{ virtualHost }}
-
             {% endif %}
-
         {% endif %}
     {% endfor %}
-
 {% endfor %}
-#}
 
 ### Consul-configured backend data.Services ###
 {% for service in data.Services %}
 backend {{ service.ID }}_backend
     {% for node in service.nodes %}
-        server {{ node.ServiceID | replace(":", "-") }}-{{ service.ID }}-{{ node.ServicePort }} {{ node.Address}}:{{ node.ServicePort }}
+{% if data.Node.Config.AdvertiseAddr == node.Address %}
+{% if node.ServiceAddress %}
+        server {{ node.ServiceID | replace(":", "-") }}-{{ service.ID }}-{{ node.ServicePort }} {{ node.ServiceAddress}}:{{ node.ServicePort }}
+{% endif %}
+{% else %}
+{% if node.Address %}
+        server {{ node.ServiceID | replace(":", "-") }}-{{ service.ID }}-{{ node.ServicePort }} {{ node.Address}}:80
+{% endif %}
+{% endif %}
     {% endfor %}
 {% endfor %}
 
 backend letsencrypt-backend
     server letsencrypt 127.0.0.1:54321
-
-
-
