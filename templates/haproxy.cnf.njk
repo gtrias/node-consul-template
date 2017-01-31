@@ -19,50 +19,55 @@ frontend www
     use_backend letsencrypt-backend if letsencrypt-acl
 
     # Generated automatically by consul-template
-{%- for service in data.Services %}
+{% for service in data.Services %}
     acl host_{{ service.ID }} hdr_beg(host) -i {{ service.ID }}.{{ "service.consul" }}
     use_backend {{ service.ID }}_backend if host_{{ service.ID }}
 
     {% for node in service.nodes -%}
-	{% for node in service.nodes -%}
-	    {% for tag in node.ServiceTags -%}
-		{% set kvTag = tag |split("=") -%}
-		{% if kvTag[0] === 'VIRTUAL_HOST' -%}
-		    {% set virtualHost = kvTag[1] -%}
-		    acl host_{{ virtualHost }} hdr_beg(host) -i {{ virtualHost }}
-		    use_backend {{ service.ID }}_backend if host_{{ virtualHost }}
-		{% endif %}
-	    {% endfor %}
-	{% endfor %}
+  {% for node in service.nodes -%}
+      {% for tag in node.ServiceTags -%}
+    {% set kvTag = tag |split("=") -%}
+    {% if kvTag[0] === 'VIRTUAL_HOST' %}
+        {% set virtualHost = kvTag[1] %}
+        acl host_{{ virtualHost }} hdr_beg(host) -i {{ virtualHost }}
+        use_backend {{ service.ID }}_backend if host_{{ virtualHost }}
+    {% endif %}
+      {% endfor %}
+  {% endfor %}
     {% endfor %}
 
 {% endfor %}
 
-{#
 frontend www-https
-{% for key, services in data.Services %}
-
-    {% for tag in service.Tags -%}
-        {% set kvTag = tag |split("=") -%}
-        {% if kvTag[0] === 'SSL_VIRTUAL_HOST' -%}
-            {% set virtualHost = kvTag[1] -%}
-            {% set certPath = ['/certificates/etc/live/', virtualHost, '/fullchain0.pem'] | join %}
-            {% if fileExists(certPath) %}
-                bind *:443 ssl crt {{ certPath }}
-                reqadd X-Forwarded-Proto:\ https
-                default_backend www-backend
-
-
-                acl host_{{ virtualHost }} hdr_beg(host) -i {{ virtualHost }}
-                use_backend {{ service.ID }}_backend if host_{{ virtualHost }}
-
-            {% endif %}
-
-        {% endif %}
+    bind *:443 ssl {% for service in data.Services -%}
+    {%- for node in service.nodes -%}
+      {%- for tag in node.ServiceTags -%}
+          {%- set kvTag = tag |split("=") -%}
+          {%- if kvTag[0] === 'SSL_VIRTUAL_HOST' -%}
+              {%- set virtualHost = kvTag[1] -%}
+              {%- set certPath = ['/certificates/etc/live/', virtualHost, '/haproxy.pem'] | join -%}
+              {%- if fileExists(certPath) -%}
+              crt {{ [certPath, ' '] | join -}}
+              {% endif %}
+          {% endif %}
+      {% endfor %}
     {% endfor %}
-
 {% endfor %}
-#}
+
+{% for service in data.Services -%}
+    {%- for node in service.nodes -%}
+      {%- for tag in node.ServiceTags -%}
+          {%- set kvTag = tag |split("=") -%}
+          {%- if kvTag[0] === 'SSL_VIRTUAL_HOST' -%}
+              {%- set virtualHost = kvTag[1] -%}
+              {% set certPath = ['/certificates/etc/live/', virtualHost, '/haproxy.pem'] | join %}
+              {% if fileExists(certPath) %}
+              use_backend {{ service.ID }}_backend if { ssl_fc_sni {{ virtualHost }} }
+              {% endif %}
+          {% endif %}
+      {% endfor %}
+    {% endfor %}
+{% endfor %}
 
 ### Consul-configured backend data.Services ###
 {% for service in data.Services %}
@@ -74,6 +79,3 @@ backend {{ service.ID }}_backend
 
 backend letsencrypt-backend
     server letsencrypt 127.0.0.1:54321
-
-
-

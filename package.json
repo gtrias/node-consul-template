@@ -18,6 +18,7 @@
   "license": "ISC",
   "dependencies": {
     "async": "^2.1.4",
+    "concat-files": "^0.1.1",
     "config": "^1.24.0",
     "consul": "^0.27.0",
     "mkdirp": "^0.5.1",

@@ -5,11 +5,15 @@ var fs               = require('fs');
 var mkdirp           = require('mkdirp');
 var config           = require('config');
 var async =  require('async');
+var concat = require('concat-files');
 var consulHost       = config.get('consul.host');
 var consul           = require('consul')({
     host: consulHost
 });
-var env              = new nunjucks.Environment(new nunjucks.FileSystemLoader('.'));
+var env              = new nunjucks.configure({
+  trimBlocks: true,
+  lstripBlocks: true
+});
 var child_process    = require('child_process');
 
 env.addFilter('split', function(str, seperator) {
@@ -20,7 +24,7 @@ env.addFilter('groupBy', function(arr, field) {
   return _.groupBy(arr, field);
 });
 
-env.addFilter('fileExists', function(arr, file) {
+env.addGlobal('fileExists', function(file) {
   return fs.existsSync(file);
 });
 
@@ -77,16 +81,22 @@ function startWatcher(node) {
 }
 
 function renderTemplates(data) {
-  config.get("templates").forEach(function (element) {
-    console.log(data);
-    var result = env.render(element.source, { data: data, globals: config.get('templateGlobals') });
-    console.log(result);
-    var templateDir = path.join(element.path);
-    var filename = element.filename;
-    mkdirp.sync(templateDir);
-    fs.writeFileSync(path.join(templateDir, filename), result);
+  keysToHaproxy(data, function (err) {
+    if (err) {
+      console.log(err);
+    }
 
-    startCommand(element.command);
+    config.get("templates").forEach(function (element) {
+      console.log(data);
+      var result = env.render(element.source, { data: data, globals: config.get('templateGlobals') });
+      console.log(result);
+      var templateDir = path.join(element.path);
+      var filename = element.filename;
+      mkdirp.sync(templateDir);
+      fs.writeFileSync(path.join(templateDir, filename), result);
+
+      startCommand(element.command);
+    });
   });
 }
 
@@ -109,6 +119,38 @@ var startCommand = function (daemon) {
 
   process.on('exit', function () {
     command.kill();
+  });
+}
+
+// Haproxy need the combination of
+// fullchanin.pem and privkey.pem
+var keysToHaproxy = function (data, cb) {
+  data.Services.forEach(function (service) {
+    service.nodes.forEach(function (node) {
+      if (node.ServiceTags) {
+        node.ServiceTags.forEach(function (tag) {
+          var kvTag = tag.split('=');
+          if (kvTag[0] === 'SSL_VIRTUAL_HOST') {
+            var virtualHost = kvTag[1];
+            var certPath = '/certificates/etc/live/' + virtualHost + '/fullchain.pem';
+            var privPath = '/certificates/etc/live/' + virtualHost + '/privkey.pem';
+            if(fs.existsSync(certPath) && fs.existsSync(privPath) ) {
+              var dest = '/certificates/etc/live/' + virtualHost + '/haproxy.pem';
+              concat([
+                  certPath,
+                  privPath
+              ], dest, function (err) {
+                if (err) return cb(err);
+
+                console.log("successfully created");
+
+                return cb();
+              });
+            }
+          }
+        });
+      }
+    });
   });
 }
 

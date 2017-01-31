@@ -39,9 +39,9 @@ services:
         - /etc/haproxy
         - /etc/consul-template
         - ./dump/certs:/certificates
-        - ./templates/haproxy.cnf.njk:/app/templates/haproxy.cnf.njk
+        - ./templates:/app/templates
         environment:
-        - 'NODE_CONFIG={"consul":{"host":"127.0.0.1"},"templates":[{"source":"templates/haproxy.cnf.njk","path":"dump","filename":"haproxy.cfg","command":"haproxy -D -p /var/run/haproxy.pid  -f /app/dump/haproxy.cfg -sf $$(cat /var/run/haproxy.pid) || true" }]}'
+        - 'NODE_CONFIG={"consul":{"host":"127.0.0.1"}, "templateGlobals": {"haproxy": {"httpPort": 80}}, "templates":[{"source":"templates/haproxy.cnf.njk","path":"dump","filename":"haproxy.cfg","command":"haproxy -D -p /var/run/haproxy.pid -f /app/dump/haproxy.cfg -sf $$(cat /var/run/haproxy.pid) || true" }]}'
 
     cerbot-consul-server:
         image: gtrias/cerbot-consul-server
