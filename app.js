@@ -4,9 +4,10 @@ var path             = require('path');
 var fs               = require('fs');
 var mkdirp           = require('mkdirp');
 var config           = require('config');
-var async =  require('async');
-var concat = require('concat-files');
+var async            = require('async');
+var concat           = require('concat-files');
 var consulHost       = config.get('consul.host');
+var child_process    = require('child_process');
 var consul           = require('consul')({
     host: consulHost
 });
@@ -14,7 +15,6 @@ var env              = new nunjucks.configure({
   trimBlocks: true,
   lstripBlocks: true
 });
-var child_process    = require('child_process');
 
 env.addFilter('split', function(str, seperator) {
   return str.split(seperator);
@@ -66,7 +66,6 @@ function startWatcher(node) {
       });
     }, function (err) {
       if (err) return console.log(err);
-
       renderTemplates({
         Services: services,
         Node: node
@@ -81,22 +80,16 @@ function startWatcher(node) {
 }
 
 function renderTemplates(data) {
-  keysToHaproxy(data, function (err) {
-    if (err) {
-      console.log(err);
-    }
+  config.get("templates").forEach(function (element) {
+    console.log(data);
+    var result = env.render(element.source, { data: data, templateGlobals: config.get('templateGlobals') });
+    console.log(result);
+    var templateDir = path.join(element.path);
+    var filename = element.filename;
+    mkdirp.sync(templateDir);
+    fs.writeFileSync(path.join(templateDir, filename), result);
 
-    config.get("templates").forEach(function (element) {
-      console.log(data);
-      var result = env.render(element.source, { data: data, templateGlobals: config.get('templateGlobals') });
-      console.log(result);
-      var templateDir = path.join(element.path);
-      var filename = element.filename;
-      mkdirp.sync(templateDir);
-      fs.writeFileSync(path.join(templateDir, filename), result);
-
-      startCommand(element.command);
-    });
+    startCommand(element.command);
   });
 }
 
@@ -124,7 +117,7 @@ var startCommand = function (daemon) {
 
 // Haproxy need the combination of
 // fullchanin.pem and privkey.pem
-var keysToHaproxy = function (data, cb) {
+/* var keysToHaproxy = function (data, cb) {
   data.Services.forEach(function (service) {
     service.nodes.forEach(function (node) {
       if (node.ServiceTags) {
@@ -152,6 +145,6 @@ var keysToHaproxy = function (data, cb) {
       }
     });
   });
-};
+}; */
 
 // setTimeout(function() { watch.end(); }, 30 * 1000);
