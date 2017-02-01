@@ -60,7 +60,7 @@ function startWatcher(node) {
         services.push({
           ID: key,
           nodes: result
-        })
+        });
 
         callback();
       });
@@ -88,7 +88,7 @@ function renderTemplates(data) {
 
     config.get("templates").forEach(function (element) {
       console.log(data);
-      var result = env.render(element.source, { data: data, globals: config.get('templateGlobals') });
+      var result = env.render(element.source, { data: data, templateGlobals: config.get('templateGlobals') });
       console.log(result);
       var templateDir = path.join(element.path);
       var filename = element.filename;
@@ -120,7 +120,7 @@ var startCommand = function (daemon) {
   process.on('exit', function () {
     command.kill();
   });
-}
+};
 
 // Haproxy need the combination of
 // fullchanin.pem and privkey.pem
@@ -152,6 +152,6 @@ var keysToHaproxy = function (data, cb) {
       }
     });
   });
-}
+};
 
 // setTimeout(function() { watch.end(); }, 30 * 1000);
