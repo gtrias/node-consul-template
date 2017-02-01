@@ -40,6 +40,7 @@ frontend www
 
 frontend www-https
     bind *:443 ssl {% for service in data.Services -%}
+
     {%- for node in service.nodes -%}
       {%- for tag in node.ServiceTags -%}
           {%- set kvTag = tag |split("=") -%}
@@ -68,6 +69,7 @@ frontend www-https
       {% endfor %}
     {% endfor %}
 {% endfor %}
+    http-request set-header X-Forwarded-Proto https if { ssl_fc }
 
 ### Consul-configured backend data.Services ###
 {% for service in data.Services %}
