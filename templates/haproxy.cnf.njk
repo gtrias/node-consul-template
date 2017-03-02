@@ -47,7 +47,7 @@ frontend www-https
           {%- if kvTag[0] === 'SSL_VIRTUAL_HOST' -%}
               {%- set virtualHost = kvTag[1] -%}
               {%- set certPath = ['/certificates/etc/live/', virtualHost, '/haproxy.pem'] | join -%}
-              {%- if fileExists(certPath) -%}
+              {%- if fileExists(certPath) %}
               crt {{ [certPath, ' '] | join -}}
               {% endif %}
           {% endif %}

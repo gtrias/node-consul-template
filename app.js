@@ -114,37 +114,3 @@ var startCommand = function (daemon) {
     command.kill();
   });
 };
-
-// Haproxy need the combination of
-// fullchanin.pem and privkey.pem
-/* var keysToHaproxy = function (data, cb) {
-  data.Services.forEach(function (service) {
-    service.nodes.forEach(function (node) {
-      if (node.ServiceTags) {
-        node.ServiceTags.forEach(function (tag) {
-          var kvTag = tag.split('=');
-          if (kvTag[0] === 'SSL_VIRTUAL_HOST') {
-            var virtualHost = kvTag[1];
-            var certPath = '/certificates/etc/live/' + virtualHost + '/fullchain.pem';
-            var privPath = '/certificates/etc/live/' + virtualHost + '/privkey.pem';
-            if(fs.existsSync(certPath) && fs.existsSync(privPath) ) {
-              var dest = '/certificates/etc/live/' + virtualHost + '/haproxy.pem';
-              concat([
-                  certPath,
-                  privPath
-              ], dest, function (err) {
-                if (err) return cb(err);
-
-                console.log("successfully created");
-
-                return cb();
-              });
-            }
-          }
-        });
-      }
-    });
-  });
-}; */
-
-// setTimeout(function() { watch.end(); }, 30 * 1000);

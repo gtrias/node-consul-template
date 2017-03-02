@@ -59,16 +59,16 @@ services:
         ports:
         - 80
         environment:
-        - 'SERVICE_TAGS=VIRTUAL_HOST=whoami.example.com,SSL_VIRTUAL_HOST=whoami.example.com,SSL_EMAIL=info@example.com'
+        - 'SERVICE_TAGS=VIRTUAL_HOST=whoami.example.com'
     whoami2:
         image: emilevauge/whoami
         ports:
         - 80
         environment:
-        - 'SERVICE_TAGS=VIRTUAL_HOST=whoami.example.com,SSL_VIRTUAL_HOST=whoami.example.com,SSL_EMAIL=info@example.com'
+        - 'SERVICE_TAGS=VIRTUAL_HOST=whoami.example.com'
     whoami3:
         image: emilevauge/whoami
         ports:
         - 80
         environment:
-        - 'SERVICE_TAGS=VIRTUAL_HOST=whoami.example.com,SSL_VIRTUAL_HOST=whoami.example.com,SSL_EMAIL=info@example.com'
+        - 'SERVICE_TAGS=VIRTUAL_HOST=whoami.example.com'
