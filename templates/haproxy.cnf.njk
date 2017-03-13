@@ -39,21 +39,7 @@ frontend www
 {% endfor %}
 
 frontend www-https
-    bind *:443 ssl {% for service in data.Services -%}
-
-    {%- for node in service.nodes -%}
-      {%- for tag in node.ServiceTags -%}
-          {%- set kvTag = tag |split("=") -%}
-          {%- if kvTag[0] === 'SSL_VIRTUAL_HOST' -%}
-              {%- set virtualHost = kvTag[1] -%}
-              {%- set certPath = ['/certificates/etc/live/', virtualHost, '/haproxy.pem'] | join -%}
-              {%- if fileExists(certPath) %}
-              crt {{ [certPath, ' '] | join -}}
-              {% endif %}
-          {% endif %}
-      {% endfor %}
-    {% endfor %}
-{% endfor %}
+    bind *:443 ssl crt-list /etc/haproxy/cert-list
 
 {% for service in data.Services -%}
     {%- for node in service.nodes -%}
@@ -75,7 +61,7 @@ frontend www-https
 {% for service in data.Services %}
 backend {{ service.ID }}_backend
     {% for node in service.nodes %}
-        server {{ node.ServiceID | replace(":", "-") }}-{{ service.ID }}-{{ node.ServicePort }} {{ node.Address}}:{{ node.ServicePort }}
+        server {{ node.ServiceID | replace(":", "-") }}-{{ service.ID }}-{{ node.ServicePort }} {{ node.ServiceAddress}}:{{ node.ServicePort }}
     {% endfor %}
 {% endfor %}
 
