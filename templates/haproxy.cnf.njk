@@ -38,7 +38,9 @@ frontend www
 
 {% endfor %}
 
+{%- if fileExists('/etc/haproxy/cert-list') %}
 frontend www-https
+    http-request set-header X-Forwarded-Proto https if { ssl_fc }
     bind *:443 ssl crt-list /etc/haproxy/cert-list
 
 {% for service in data.Services -%}
@@ -47,7 +49,7 @@ frontend www-https
           {%- set kvTag = tag |split("=") -%}
           {%- if kvTag[0] === 'SSL_VIRTUAL_HOST' -%}
               {%- set virtualHost = kvTag[1] -%}
-              {% set certPath = ['/certificates/etc/live/', virtualHost, '/haproxy.pem'] | join %}
+              {% set certPath = ['/certificates/live/', virtualHost, '/', virtualHost, '.pem'] | join %}
               {% if fileExists(certPath) %}
               use_backend {{ service.ID }}_backend if { ssl_fc_sni {{ virtualHost }} }
               {% endif %}
@@ -55,7 +57,7 @@ frontend www-https
       {% endfor %}
     {% endfor %}
 {% endfor %}
-    http-request set-header X-Forwarded-Proto https if { ssl_fc }
+{% endif %}
 
 ### Consul-configured backend data.Services ###
 {% for service in data.Services %}

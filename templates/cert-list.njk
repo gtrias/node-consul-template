@@ -1,0 +1,15 @@
+{% for service in data.Services -%}
+    {%- for node in service.nodes -%}
+      {%- for tag in node.ServiceTags -%}
+          {%- set kvTag = tag |split("=") -%}
+          {%- if kvTag[0] === 'SSL_VIRTUAL_HOST' -%}
+              {%- set virtualHost = kvTag[1] -%}
+              {%- set certPath = ['/certificates/live/', virtualHost, '/', virtualHost, '.pem'] | join %}
+              {%- if fileExists(certPath) %}
+{{ certPath }}
+              {% endif %}
+          {% endif %}
+      {% endfor %}
+    {% endfor %}
+{% endfor %}
+
