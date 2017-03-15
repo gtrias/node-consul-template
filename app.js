@@ -4,13 +4,20 @@ var path             = require('path');
 var fs               = require('fs');
 var mkdirp           = require('mkdirp');
 var config           = require('config');
-var async =  require('async');
+var async            = require('async');
+var winston          = require('winston');
 var consulHost       = config.get('consul.host');
 var consul           = require('consul')({
     host: consulHost
 });
 var env              = new nunjucks.Environment(new nunjucks.FileSystemLoader('.'));
 var child_process    = require('child_process');
+
+var logger = new (winston.Logger)({
+  transports: [
+    new (winston.transports.Console)({timestamp : true})
+  ]
+});
 
 env.addFilter('split', function(str, seperator) {
   return str.split(seperator);
@@ -29,7 +36,7 @@ env.addFilter('fileExists', function(arr, file) {
 function startListen() {
   consul.agent.self(function(err, result) {
     if (err) {
-      console.log(err);
+      logger.error(err);
       startListen();
     } else {
       startWatcher(result);
@@ -42,8 +49,8 @@ startListen();
 // Starting watcher
 function startWatcher(node) {
   var nodeName = node.Config.NodeName;
-  console.log(node);
-  console.log('Starting watcher');
+  logger.info(node);
+  logger.info('Starting watcher');
   var watch = consul.watch({ method: consul.catalog.service.list, options: {'node': nodeName}});
 
   watch.on('change', function(data, res) {
@@ -61,7 +68,7 @@ function startWatcher(node) {
         callback();
       });
     }, function (err) {
-      if (err) return console.log(err);
+      if (err) return logger.error(err);
 
       renderTemplates({
         Services: services,
@@ -72,15 +79,15 @@ function startWatcher(node) {
   });
 
   watch.on('error', function(err) {
-    console.log('error:', err);
+    logger.error('error:', err);
   });
 }
 
 function renderTemplates(data) {
   config.get("templates").forEach(function (element) {
-    console.log(data);
+    logger.info(data);
     var result = env.render(element.source, { data: data, globals: config.get('templateGlobals') });
-    console.log(result);
+    logger.info(result);
     var templateDir = path.join(element.path);
     var filename = element.filename;
     mkdirp.sync(templateDir);
@@ -96,20 +103,18 @@ var startCommand = function (daemon) {
   // Capturing stdout
   command.stdout.on('data',
     function (data) {
-      console.log('tail output: ' + data);
+      logger.info('tail output: ' + data);
     }
   );
 
   // Capturing stderr
   command.stderr.on('data',
     function (data) {
-      console.log('err data: ' + data);
+      logger.error('err data: ' + data);
     }
   );
 
   process.on('exit', function () {
     command.kill();
   });
-}
-
-// setTimeout(function() { watch.end(); }, 30 * 1000);
+};
