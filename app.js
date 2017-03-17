@@ -35,6 +35,16 @@ env.addGlobal('fileExists', function(file) {
   return fs.existsSync(file);
 });
 
+env.addGlobal('hasContents', function (filename, search) {
+  var file = fs.readFileSync(filename, {encoding: 'utf8'});
+
+  console.log('File to be analysed %s', file);
+
+  regex = new RegExp(search);
+
+  return file.match(regex);
+});
+
 
 // Getting consul agent nodename to start watcher
 function startListen() {
@@ -97,6 +107,7 @@ function renderTemplates(data) {
     fs.writeFileSync(path.join(templateDir, filename), result);
 
     startCommand(element.command);
+
   });
 }
 
