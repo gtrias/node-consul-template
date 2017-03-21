@@ -97,17 +97,22 @@ function startWatcher(node) {
 }
 
 function renderTemplates(data) {
-  config.get("templates").forEach(function (element) {
-    logger.info(data);
-    var result = env.render(element.source, { data: data, templateGlobals: config.get('templateGlobals') });
-    logger.info(result);
+  async.forEachOfSeries(config.get("templates"), function (element) {
+    logger.info('Rendering template: %j', element);
+
+    var result = env.render(element.source,
+      {
+        data: data,
+        templateGlobals: config.get('templateGlobals')
+      }
+    );
+    logger.info('Rendered template, result: %s', result);
     var templateDir = path.join(element.path);
     var filename = element.filename;
     mkdirp.sync(templateDir);
     fs.writeFileSync(path.join(templateDir, filename), result);
 
-    startCommand(element.command);
-
+    return startCommand(element.command);
   });
 }
 
