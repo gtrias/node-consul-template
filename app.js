@@ -62,10 +62,16 @@ startListen();
 
 // Starting watcher
 function startWatcher(node) {
+
   var nodeName = node.Config.NodeName;
   logger.info(node);
   logger.info('Starting watcher');
-  var watch = consul.watch({ method: consul.catalog.service.list, options: {'node': nodeName}});
+  var watch = consul.watch({
+    method: consul.catalog.service.list,
+    options: {
+      'node': nodeName
+    }
+  });
 
   watch.on('change', function(data, res) {
     var services = [];
@@ -83,12 +89,12 @@ function startWatcher(node) {
       });
     }, function (err) {
       if (err) return logger.error(err);
-      renderTemplates({
+
+      return renderTemplates({
         Services: services,
         Node: node
       });
     });
-
   });
 
   watch.on('error', function(err) {
@@ -96,7 +102,12 @@ function startWatcher(node) {
   });
 }
 
-function renderTemplates(data) {
+// Command queue
+var q = async.queue(function (task, callback) {
+  return startCommand(task, callback);
+}, 1);
+
+function renderTemplates(data, callback) {
   async.forEachOfSeries(config.get("templates"), function (element) {
     logger.info('Rendering template: %j', element);
 
@@ -112,11 +123,11 @@ function renderTemplates(data) {
     mkdirp.sync(templateDir);
     fs.writeFileSync(path.join(templateDir, filename), result);
 
-    return startCommand(element.command);
+    return q.push(element.command);
   });
 }
 
-var startCommand = function (daemon) {
+var startCommand = function (daemon, callback) {
   var command = child_process.exec(daemon);
 
   // Capturing stdout
@@ -130,6 +141,13 @@ var startCommand = function (daemon) {
   command.stderr.on('data',
     function (data) {
       logger.error('err data: ' + data);
+    }
+  );
+
+  // Capturing stdout
+  command.on('close',
+    function (code) {
+      return callback(code);
     }
   );
 
