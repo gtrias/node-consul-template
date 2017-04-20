@@ -108,7 +108,7 @@ var q = async.queue(function (task, callback) {
 }, 1);
 
 function renderTemplates(data, callback) {
-  async.forEachOfSeries(config.get("templates"), function (element) {
+  async.forEachOfSeries(config.get("templates"), function (element, key, cb) {
     logger.info('Rendering template: %j', element);
 
     var result = env.render(element.source,
@@ -123,7 +123,8 @@ function renderTemplates(data, callback) {
     mkdirp.sync(templateDir);
     fs.writeFileSync(path.join(templateDir, filename), result);
 
-    return q.push(element.command);
+    q.push(element.command);
+    cb();
   });
 }
 
