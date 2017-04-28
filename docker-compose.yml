@@ -43,8 +43,8 @@ services:
         environment:
           - 'NODE_CONFIG={"consul":{"host":"127.0.0.1"}, "templateGlobals": {"haproxy": {"httpPort": 80}}, "templates":[{"source":"templates/haproxy.cnf.njk","path":"/etc/haproxy","filename":"haproxy.cfg","command":"service haproxy reload" }, {"source": "templates/cert-list.njk", "path": "/etc/haproxy/", "filename": "cert-list", "command": "echo"}]}'
 
-    cerbot-consul-server:
-        image: gtrias/cerbot-consul-server
+    certbot-consul-server:
+        image: gtrias/certbot-consul-server
         network_mode: host
         volumes:
         - ./dump/certs:/root/letsencrypt
