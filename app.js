@@ -38,8 +38,6 @@ env.addGlobal('fileExists', function(file) {
 env.addGlobal('hasContents', function (filename, search) {
   var file = fs.readFileSync(filename, {encoding: 'utf8'});
 
-  console.log('File to be analysed %s', file);
-
   regex = new RegExp(search);
 
   return file.match(regex);
@@ -64,8 +62,6 @@ startListen();
 function startWatcher(node) {
 
   var nodeName = node.Config.NodeName;
-  logger.info(node);
-  logger.info('Starting watcher');
   var watch = consul.watch({
     method: consul.catalog.service.list,
     options: {
@@ -109,7 +105,7 @@ var q = async.queue(function (task, callback) {
 
 function renderTemplates(data, callback) {
   async.forEachOfSeries(config.get("templates"), function (element, key, cb) {
-    logger.info('Rendering template: %j', element);
+    logger.info('Rendering template: %j', element.source);
 
     var result = env.render(element.source,
       {
@@ -117,7 +113,7 @@ function renderTemplates(data, callback) {
         templateGlobals: config.get('templateGlobals')
       }
     );
-    logger.info('Rendered template, result: %s', result);
+    logger.info('Rendered template: %s', element.source);
     var templateDir = path.join(element.path);
     var filename = element.filename;
     mkdirp.sync(templateDir);
