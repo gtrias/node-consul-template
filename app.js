@@ -81,6 +81,10 @@ function startWatcher(node) {
       consul.catalog.service.nodes(key, function(err, result) {
         if (err) throw err;
 
+        result.forEach(function (element, index) {
+          delete result[index].ModifyIndex;
+        })
+
         services.push({ID: key, nodes: result})
 
         callback();
