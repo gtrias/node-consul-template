@@ -100,8 +100,6 @@ function startWatcher(node) {
           Node: node
         });
 
-      } else {
-        logger.info('there\'s no change in services')
       }
     });
   });
