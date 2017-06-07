@@ -9,6 +9,7 @@ var concat           = require('concat-files');
 var winston          = require('winston');
 var consulHost       = config.get('consul.host');
 var child_process    = require('child_process');
+var diff             = require('deep-diff').diff;
 var consul           = require('consul')({
     host: consulHost
 });
@@ -43,6 +44,10 @@ env.addGlobal('hasContents', function (filename, search) {
   return file.match(regex);
 });
 
+// Checking if there's a difference in services array from the last one to avoid unneeded restarts and template generation
+function serviceColDiff(oldServices, services) {
+  return diff(oldServices, services);
+}
 
 // Getting consul agent nodename to start watcher
 function startListen() {
@@ -60,6 +65,7 @@ startListen();
 
 // Starting watcher
 function startWatcher(node) {
+  var oldServices = [];
 
   var nodeName = node.Config.NodeName;
   var watch = consul.watch({
@@ -71,25 +77,28 @@ function startWatcher(node) {
 
   watch.on('change', function(data, res) {
     var services = [];
-
-    async.forEachOf(data, function(service, key, callback) {
+    async.eachOfSeries(data, function(service, key, callback) {
       consul.catalog.service.nodes(key, function(err, result) {
         if (err) throw err;
 
-        services.push({
-          ID: key,
-          nodes: result
-        });
+        services.push({ID: key, nodes: result})
 
         callback();
       });
     }, function (err) {
       if (err) return logger.error(err);
 
-      return renderTemplates({
-        Services: services,
-        Node: node
-      });
+      if (serviceColDiff(oldServices, services)) {
+        oldServices = Array.from(services)
+
+        return renderTemplates({
+          Services: services,
+          Node: node
+        });
+
+      } else {
+        logger.info('there\'s no change in services')
+      }
     });
   });
 
