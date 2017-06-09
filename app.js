@@ -79,7 +79,9 @@ function startWatcher(node) {
     var services = [];
     async.eachOfSeries(data, function(service, key, callback) {
       consul.catalog.service.nodes(key, function(err, result) {
-        if (err) logger.error(err);
+        if (err) {
+          return callback(logger.error(err));
+        }
 
         result.forEach(function (element, index) {
           delete result[index].ModifyIndex;
